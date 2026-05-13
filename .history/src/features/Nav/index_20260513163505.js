@@ -105,7 +105,6 @@ const Nav = () => {
         </section>
         <section className={section}>
             <MindmapTitle />
-            <SearchBox />
         </section>
         <section className={section} onClick={handlePropagation}>
             <ToolButton icon={'rotate-left'} onClick={() => handleMove()}>还原</ToolButton>
