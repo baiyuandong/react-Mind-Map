@@ -2,7 +2,8 @@ import * as actionTypes from './actionTypes';
 import defaultMindmap from '../../../statics/defaultMindmap';
 import {findNode, deepCopy, setShowChildrenTrue} from '../../../methods/assistFunctions';
 
-export const defaultValue_mindmap = JSON.parse(localStorage.getItem('mindmap')) || defaultMindmap;
+const storedMindmap = localStorage.getItem('mindmap');
+export const defaultValue_mindmap = storedMindmap ? JSON.parse(storedMindmap) : defaultMindmap;
 
 export default (mindmap, action) => {
     switch (action.type) {

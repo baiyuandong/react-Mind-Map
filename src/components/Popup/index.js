@@ -5,6 +5,8 @@ import {handlePropagation} from '../../methods/assistFunctions';
 import New from './subComponents/New';
 import Open from './subComponents/Open';
 import Theme from './subComponents/Theme';
+import Save from './subComponents/Save';
+import KnowledgeSystem from './subComponents/KnowledgeSystem';
 
 const getContentComponent = type => {
     switch (type) {
@@ -16,15 +18,19 @@ const getContentComponent = type => {
             return lazy(() => import('./subComponents/Export'));
         case popupType.THEME:
             return Theme;
+        case popupType.SAVE:
+            return Save;
+        case popupType.KNOWLEDGE_SYSTEM:
+            return KnowledgeSystem;
         default:
             return;
     }
 };
 
-const Popup = ({type, handleClosePopup, handleDownload}) => {
+const Popup = ({type, handleClosePopup, handleDownload, width}) => {
     const Content = getContentComponent(type);
     return (<div className={wrapper} onClick={handlePropagation}>
-        <div className={content_wrapper}>
+        <div className={content_wrapper} style={width ? { width } : undefined}>
             <i className={'zwicon-close-circle ' + close_button} onClick={handleClosePopup} />
             <Suspense fallback={<></>}>
                 <Content handleClosePopup={handleClosePopup} handleDownload={handleDownload} />
@@ -49,16 +55,20 @@ const content_wrapper = css`
 display: flex;
 flex-direction: column;
 position: absolute;
-top:30%;
-left:0;
-right:0;
+top: 50%;
+left: 0;
+right: 0;
 width: 400px;
+max-width: calc(100vw - 40px);
+max-height: 80vh;
 margin: auto;
 padding: 40px 40px 20px;
 font-size: 1rem;
 background-color: #ffffff;
 border-radius: 20px;
 z-index: 1;
+transform: translateY(-50%);
+overflow: hidden;
 `;
 
 const close_button = css`

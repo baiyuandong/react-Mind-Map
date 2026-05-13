@@ -5,6 +5,11 @@ import 'normalize.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+// Polyfill for process.env in browsers
+if (typeof window !== 'undefined' && !window.process) {
+  window.process = { env: {} };
+}
+
 ReactDOM.render(<App />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change

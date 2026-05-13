@@ -14,7 +14,7 @@ const Open = ({handleClosePopup, handleDownload}) => {
     const handleOpenFile = () => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.rmf,.km,.txt,.md';
+        input.accept = '.rmf,.km,.txt,.md,.json';
         input.addEventListener('change', event => {
             const file = event.target.files[0],
                 file_name = file.name;
@@ -48,6 +48,7 @@ const Open = ({handleClosePopup, handleDownload}) => {
         <ul className={list_wrapper}>
             <li>RMind（.rmf）</li>
             <li>百度脑图（.km）</li>
+            <li>JSON 文件（.json）</li>
             <li>Markdown（.md）</li>
             <li>文本文件（.txt）</li>
         </ul>

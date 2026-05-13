@@ -22,7 +22,8 @@ const Export = ({handleClosePopup}) => {
 
     const handleExportText = format => {
         const data = mindmapExporter(mindmap, format);
-        let url = `data:text/plain,${encodeURIComponent(data)}`;
+        const mimeType = format === 'JSON' ? 'application/json' : 'text/plain';
+        let url = `data:${mimeType},${encodeURIComponent(data)}`;
         downloadFile(url, `${title}.${format.toLowerCase()}`);
     };
 
@@ -31,6 +32,7 @@ const Export = ({handleClosePopup}) => {
         <ul className={list_wrapper}>
             <li onClick={handleExportPNG}><i className={'zwicon-file-image'} />PNG 图片（.png）</li>
             <li onClick={() => { handleExportText('KM'); }}><i className={'zwicon-file-pdf'} />百度脑图（.km）</li>
+            <li onClick={() => { handleExportText('JSON'); }}><i className={'zwicon-file-code'} />JSON 文件（.json）</li>
             <li onClick={() => { handleExportText('MD'); }}><i className={'zwicon-file-table'} />Markdown（.md）</li>
             <li onClick={() => { handleExportText('TXT'); }}><i className={'zwicon-file-font'} />文本文件（.txt）</li>
         </ul>

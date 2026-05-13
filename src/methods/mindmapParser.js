@@ -73,6 +73,16 @@ const buildNodeFromJSON = (json, format) => {
             let km_mindmap = JSON.parse(json);
             return copyNodeData(format, {}, km_mindmap.root, true);
         }
+        case 'JSON': {
+            let json_mindmap = JSON.parse(json);
+            const copyJSONToNode = (data, is_root = false) => ({
+                id: is_root ? refer.ROOT_NODE_ID : (data.id || md5('' + Date.now() + Math.random() + data.title)),
+                text: data.title,
+                showChildren: true,
+                children: (data.children || []).map(child => copyJSONToNode(child))
+            });
+            return copyJSONToNode(json_mindmap, true);
+        }
         default:
             return;
     }
@@ -86,8 +96,13 @@ export default (import_data, format) => {
             const data_array = import_data.split('\n').filter(line => line);
             mindmap = buildNodeFromText(data_array, format, -1);
             break;
-        default:
+        case 'RMF':
+        case 'KM':
+        case 'JSON':
             mindmap = buildNodeFromJSON(import_data, format);
+            break;
+        default:
+            mindmap = buildNodeFromJSON(import_data, 'JSON');
             break;
     }
     return mindmap;

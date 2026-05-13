@@ -47,6 +47,19 @@ const exportMindmapToJSON = (mindmap, format) => {
         case 'KM':
             const km_mindmap = {root: copyNodeData(format, {}, mindmap)};
             return JSON.stringify(km_mindmap);
+        case 'JSON': {
+            const copyNodeToJSON = (node) => ({
+                id: node.id,
+                title: node.text,
+                children: node.children.map(child => copyNodeToJSON(child))
+            });
+            const json_mindmap = {
+                id: mindmap.id,
+                title: mindmap.text,
+                children: mindmap.children.map(child => copyNodeToJSON(child))
+            };
+            return JSON.stringify(json_mindmap, null, 2);
+        }
         default:
             return;
     }
@@ -58,6 +71,10 @@ export default (mindmap, format) => {
         case 'MD':
         case 'TXT':
             export_data = exportMindmapToText(mindmap, format);
+            break;
+        case 'JSON':
+        case 'KM':
+            export_data = exportMindmapToJSON(mindmap, format);
             break;
         default:
             export_data = exportMindmapToJSON(mindmap, format);
