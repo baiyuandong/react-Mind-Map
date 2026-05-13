@@ -1,0 +1,139 @@
+const mousemoveInfo = {
+    startX: 0,
+    startY: 0,
+    isDragging: false
+};
+
+// 专门处理滚轮缩放：Ctrl + 滚轮
+const createWheelZoomHandler = (zoomHook) => {
+    const { zoomIn, zoomOut } = zoomHook;
+    return (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                zoomIn(e.clientX, e.clientY);
+            } else {
+                zoomOut(e.clientX, e.clientY);
+            }
+        }
+    };
+};
+
+// 专门处理鼠标拖拽移动画布：在空白区域左键拖拽
+const createMouseDragHandler = (moveHook, zoomRate) => {
+    const { moveXY } = moveHook;
+    return {
+        handleMouseDown: (e) => {
+            // 只有左键点击 (button === 0)，且点击的不是节点元素
+            if (e.button === 0) {
+                const target = e.target;
+                const isNode = target.closest('[data-tag="dropArea"]') || 
+                               target.closest('[id="rmind_root_node"]') ||
+                               target.closest('[draggable="true"]') ||
+                               target.tagName === 'P' ||
+                               target.tagName === 'BUTTON' ||
+                               target.closest('button');
+                
+                if (!isNode) {
+                    mousemoveInfo.startX = e.clientX;
+                    mousemoveInfo.startY = e.clientY;
+                    mousemoveInfo.isDragging = false;
+                }
+            }
+        },
+        handleMouseMove: (e) => {
+            if (mousemoveInfo.startX === 0 && mousemoveInfo.startY === 0) return;
+            
+            const movedX = e.clientX - mousemoveInfo.startX;
+            const movedY = e.clientY - mousemoveInfo.startY;
+            
+            if (!mousemoveInfo.isDragging) {
+                // 移动超过5px才认为是拖拽（而不是点击）
+                if (Math.abs(movedX) > 5 || Math.abs(movedY) > 5) {
+                    mousemoveInfo.isDragging = true;
+                } else {
+                    return;
+                }
+            }
+            
+            moveXY(movedX / zoomRate, movedY / zoomRate);
+            mousemoveInfo.startX = e.clientX;
+            mousemoveInfo.startY = e.clientY;
+        },
+        handleMouseUp: () => {
+            mousemoveInfo.startX = 0;
+            mousemoveInfo.startY = 0;
+            mousemoveInfo.isDragging = false;
+        }
+    };
+};
+
+export { createWheelZoomHandler, createMouseDragHandler };
+
+// 保留旧的导出以兼容（但改为新实现）
+export default (propHook, zoomRate, normalizeXY) => {
+    const { zoomIn, zoomOut, moveXY } = propHook;
+
+    const handleWhellEventWithkey = e => {
+        // Ctrl + 滚轮 = 缩放
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                zoomIn(e.clientX, e.clientY);
+            } else {
+                zoomOut(e.clientX, e.clientY);
+            }
+            return;
+        }
+
+        // 鼠标左键在空白区域拖拽移动
+        if (e.type === 'mousedown' && e.button === 0) {
+            const target = e.target;
+            const isNode = target.closest('[data-tag="dropArea"]') || 
+                           target.closest('[draggable="true"]') ||
+                           target.tagName === 'P' ||
+                           target.tagName === 'BUTTON' ||
+                           target.closest('button');
+            
+            if (!isNode) {
+                mousemoveInfo.startX = e.clientX;
+                mousemoveInfo.startY = e.clientY;
+                mousemoveInfo.isDragging = false;
+            }
+            return;
+        }
+
+        if (e.type === 'mousemove' && mousemoveInfo.startX !== 0 && mousemoveInfo.startY !== 0) {
+            const movedX = e.clientX - mousemoveInfo.startX;
+            const movedY = e.clientY - mousemoveInfo.startY;
+            
+            if (!mousemoveInfo.isDragging) {
+                if (Math.abs(movedX) > 5 || Math.abs(movedY) > 5) {
+                    mousemoveInfo.isDragging = true;
+                } else {
+                    return;
+                }
+            }
+            
+            moveXY(movedX / 10 / (normalizeXY || 1), movedY / 10);
+            mousemoveInfo.startX = e.clientX;
+            mousemoveInfo.startY = e.clientY;
+        }
+
+        if (e.type === 'mouseup') {
+            mousemoveInfo.startX = 0;
+            mousemoveInfo.startY = 0;
+            mousemoveInfo.isDragging = false;
+        }
+    };
+
+    return event => {
+        try {
+            handleWhellEventWithkey(event);
+        } catch (e) {
+            console.error('移动或缩放功能异常', e);
+        }
+    };
+};
