@@ -1,8 +1,8 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
+﻿import React from 'react'
 import MindMapNodeRenderer from './Node'
+import type { MindMapNode } from '../types'
 
-type SubNodeProps = {
+interface SubNodeProps {
   layer: number
   node: MindMapNode
   nodeRefs: Set<React.RefObject<HTMLDivElement | null>>
@@ -27,8 +27,8 @@ const SubNode: React.FC<SubNodeProps> = ({ layer, node, nodeRefs, parent, onLeft
         onLeft={onLeft}
       />
       <div>
-        {node.showChildren
-          && node.children.map(subNode => (
+        {node.showChildren &&
+          node.children.map((subNode) => (
             <SubNode
               key={subNode.id}
               layer={layer + 1}

@@ -1,13 +1,12 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
+﻿import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import useMindMapStore from '../store'
+import type { MindMapNode } from '../types'
 
-type ToolbarProps = {
+interface ToolbarProps {
   layer: number
   node: MindMapNode
-  parent: MindMapNode | { id: string, children: MindMapNode[] }
+  parent: MindMapNode | { id: string; children: MindMapNode[] }
   x: number
   y: number
   onClose: () => void
@@ -15,14 +14,15 @@ type ToolbarProps = {
 
 const Toolbar: React.FC<ToolbarProps> = ({ layer, node, parent, x, y, onClose }) => {
   const menuRef = useRef<HTMLDivElement>(null)
-  const addChild = useMindMapStore(s => s.addChild)
-  const addSibling = useMindMapStore(s => s.addSibling)
-  const deleteNode = useMindMapStore(s => s.deleteNode)
-  const editNode = useMindMapStore(s => s.editNode)
-  const toggleChildren = useMindMapStore(s => s.toggleChildren)
-  const selectNode = useMindMapStore(s => s.selectNode)
-  const toggleEditPanel = useMindMapStore(s => s.toggleEditPanel)
+  const addChild = useMindMapStore((s) => s.addChild)
+  const addSibling = useMindMapStore((s) => s.addSibling)
+  const deleteNode = useMindMapStore((s) => s.deleteNode)
+  const editNode = useMindMapStore((s) => s.editNode)
+  const toggleChildren = useMindMapStore((s) => s.toggleChildren)
+  const selectNode = useMindMapStore((s) => s.selectNode)
+  const toggleEditPanel = useMindMapStore((s) => s.toggleEditPanel)
   const toggleKnowledgePointModal = useMindMapStore(s => s.toggleKnowledgePointModal)
+
 
   const handleAddChild = () => {
     addChild(node.id)
@@ -60,6 +60,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ layer, node, parent, x, y, onClose })
     toggleKnowledgePointModal(true, node.id)
     onClose()
   }
+
 
   // 点击菜单外部关闭
   useEffect(() => {
@@ -108,7 +109,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ layer, node, parent, x, y, onClose })
   }
 
   return ReactDOM.createPortal(
-    <div ref={menuRef} style={menuStyle} onClick={e => e.stopPropagation()}>
+    <div ref={menuRef} style={menuStyle} onClick={(e) => e.stopPropagation()}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <button style={itemStyle} onClick={handleAddChild} title="添加子节点">
           <span>新增子级分类</span>
@@ -128,10 +129,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ layer, node, parent, x, y, onClose })
 
         <div style={dividerStyle} />
 
-        <button style={itemStyle} onClick={handleAddKnowledgePoint} title="新增知识点">
-          <span>新增知识点</span>
-          <span style={{ flex: '0 0 auto', marginLeft: 8, fontSize: 12, color: '#8a8a8a' }}>+1</span>
-        </button>
+
 
         <button style={itemStyle} onClick={handleEditNode} title="重命名">
           <span>重命名</span>

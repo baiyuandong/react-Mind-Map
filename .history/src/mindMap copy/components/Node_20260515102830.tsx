@@ -1,16 +1,17 @@
-﻿import React, { useEffect, useRef, useState, useCallback } from 'react'
-import useMindMapStore from '../store'
-import { ROOT_PARENT, LEFT_NODE, RIGHT_NODE, DROP_AREA } from '../types'
 import type { MindMapNode } from '../types'
+import * as React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import useMindMapStore from '../store'
+import { DROP_AREA, LEFT_NODE, RIGHT_NODE, ROOT_PARENT } from '../types'
 import InputDiv from './InputDiv'
-import Toolbar from './Toolbar'
 import MdPreview from './MdPreview'
+import Toolbar from './Toolbar'
 
-interface NodeProps {
+type NodeProps = {
   layer: number
   node: MindMapNode
   nodeRefs: Set<React.RefObject<HTMLDivElement | null>>
-  parent: MindMapNode | { id: string; children: MindMapNode[] }
+  parent: MindMapNode | { id: string, children: MindMapNode[] }
   onLeft?: boolean
 }
 
@@ -43,17 +44,17 @@ const LAYER_STYLES = [
 const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = false }) => {
   const selfRef = useRef<HTMLDivElement>(null)
   const isRightClick = useRef(false)
-  const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null)
+  const [contextMenuPos, setContextMenuPos] = useState<{ x: number, y: number } | null>(null)
 
-  const curSelect = useMindMapStore((s) => s.curSelect)
-  const curEdit = useMindMapStore((s) => s.curEdit)
-  const editPanelShow = useMindMapStore((s) => s.editPanelShow)
-  const selectNode = useMindMapStore((s) => s.selectNode)
-  const editNode = useMindMapStore((s) => s.editNode)
-  const toggleChildren = useMindMapStore((s) => s.toggleChildren)
-  const clearNodeStatus = useMindMapStore((s) => s.clearNodeStatus)
+  const curSelect = useMindMapStore(s => s.curSelect)
+  const curEdit = useMindMapStore(s => s.curEdit)
+  const editPanelShow = useMindMapStore(s => s.editPanelShow)
+  const selectNode = useMindMapStore(s => s.selectNode)
+  const editNode = useMindMapStore(s => s.editNode)
+  const toggleChildren = useMindMapStore(s => s.toggleChildren)
+  const clearNodeStatus = useMindMapStore(s => s.clearNodeStatus)
+  const toggleKnowledgePointModal = useMindMapStore(s => s.toggleKnowledgePointModal)
   const toggleKnowledgeDrawer = useMindMapStore(s => s.toggleKnowledgeDrawer)
-
 
   const handleSelectNode = () => {
     selectNode(node.id, true)
@@ -121,7 +122,7 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
       data-parent={parent.id}
       data-show-children={node.showChildren}
       draggable={layer > 0 && curEdit !== node.id}
-      onClick={(e) => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       onContextMenu={handleContextMenu}
       style={{
         position: 'relative',
@@ -154,6 +155,11 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
         }}
       />
 
+      <p style={{ margin: 0, lineHeight: '1.5em', wordBreak: 'break-word', minHeight: 18 }}>
+        {node.text}
+        {node.info && <MdPreview mdtext={node.info} />}
+      </p>
+
       {/* 知识点数量徽章 */}
       {node.knowledgePoints && node.knowledgePoints.length > 0 && (
         <div
@@ -181,37 +187,27 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
         </div>
       )}
 
-      <p style={{ margin: 0, lineHeight: '1.5em', wordBreak: 'break-word', minHeight: 18 }}>
-        {node.text}
-        {node.info && <MdPreview mdtext={node.info} />}
-      </p>
-
       {layer > 0 && node.children.length > 0 && (
         <button
           onClick={handleToggleChildren}
           style={{
             position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: 24,
-            height: 24,
+            top: 0,
+            bottom: 0,
+            width: 20,
+            height: 20,
+            margin: 'auto 0',
             padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            textAlign: 'center',
             backgroundColor: '#ffffff',
             border: '1px solid #cccccc',
             borderRadius: '50%',
             outline: 'none',
             cursor: 'pointer',
-            fontSize: 14,
-            lineHeight: 1,
-            ...(onLeft ? { left: -12 } : { right: -12 }),
+            ...(onLeft ? { left: -15 } : { right: -15 }),
           }}
-          aria-label={node.showChildren ? '收起' : '展开'}
-          title={node.showChildren ? '收起子节点' : '展开子节点'}
         >
-          <span style={{ display: 'block' }}>{node.showChildren ? '−' : '+'}</span>
+          {node.showChildren ? '-' : '+'}
         </button>
       )}
 

@@ -1,16 +1,15 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
+﻿import React from 'react'
 import useMindMapStore from '../store'
 import { findNode } from '../utils/assistFunctions'
+import type { MindMapNode } from '../types'
 
 /**
  * 递归搜索节点，返回匹配的节点以及从根到该节点的路径（祖先链）
  * 返回格式：{ node, path: [ancestor, ..., node] }
  */
-function searchNodesWithPath(node: MindMapNode, keyword: string, parentPath: MindMapNode[] = []): { node: MindMapNode, path: MindMapNode[] }[] {
-  if (!node || !keyword.trim())
-    return []
-  const results: { node: MindMapNode, path: MindMapNode[] }[] = []
+function searchNodesWithPath(node: MindMapNode, keyword: string, parentPath: MindMapNode[] = []): { node: MindMapNode; path: MindMapNode[] }[] {
+  if (!node || !keyword.trim()) return []
+  const results: { node: MindMapNode; path: MindMapNode[] }[] = []
   const lowerKeyword = keyword.toLowerCase()
   const currentPath = [...parentPath, node]
 
@@ -29,24 +28,23 @@ function searchNodesWithPath(node: MindMapNode, keyword: string, parentPath: Min
  * 判断是否有同名节点（用于决定是否显示路径信息）
  */
 function hasSameNameNodes(allResults: { node: MindMapNode }[]): boolean {
-  if (allResults.length <= 1)
-    return false
+  if (allResults.length <= 1) return false
   const textCount: Record<string, number> = {}
   allResults.forEach((r) => {
     textCount[r.node.text] = (textCount[r.node.text] || 0) + 1
   })
-  return Object.values(textCount).some(c => c > 1)
+  return Object.values(textCount).some((c) => c > 1)
 }
 
-type SearchItem = {
+interface SearchItem {
   node: MindMapNode
   path: MindMapNode[]
 }
 
 const SearchBox: React.FC = () => {
-  const mindmap = useMindMapStore(s => s.mindmap)
-  const toggleChildren = useMindMapStore(s => s.toggleChildren)
-  const selectNode = useMindMapStore(s => s.selectNode)
+  const mindmap = useMindMapStore((s) => s.mindmap)
+  const toggleChildren = useMindMapStore((s) => s.toggleChildren)
+  const selectNode = useMindMapStore((s) => s.selectNode)
 
   const [keyword, setKeyword] = React.useState('')
   const [results, setResults] = React.useState<SearchItem[]>([])
@@ -90,20 +88,18 @@ const SearchBox: React.FC = () => {
     setShowResults(false)
     setKeyword('')
     setResults([])
-    if (inputRef.current)
-      inputRef.current.blur()
+    if (inputRef.current) inputRef.current.blur()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showResults || results.length === 0)
-      return
+    if (!showResults || results.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex(prev => (prev < results.length - 1 ? prev + 1 : 0))
+      setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0))
     }
     else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIndex(prev => (prev > 0 ? prev - 1 : results.length - 1))
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1))
     }
     else if (e.key === 'Enter') {
       e.preventDefault()
@@ -113,8 +109,7 @@ const SearchBox: React.FC = () => {
     }
     else if (e.key === 'Escape') {
       setShowResults(false)
-      if (inputRef.current)
-        inputRef.current.blur()
+      if (inputRef.current) inputRef.current.blur()
     }
   }
 
@@ -122,18 +117,17 @@ const SearchBox: React.FC = () => {
     setKeyword('')
     setResults([])
     setShowResults(false)
-    if (inputRef.current)
-      inputRef.current.focus()
+    if (inputRef.current) inputRef.current.focus()
   }
 
   // 点击外部关闭下拉
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        resultsRef.current
-        && !resultsRef.current.contains(e.target as Node)
-        && inputRef.current
-        && !inputRef.current.contains(e.target as Node)
+        resultsRef.current &&
+        !resultsRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
       ) {
         setShowResults(false)
       }
@@ -157,7 +151,7 @@ const SearchBox: React.FC = () => {
         padding: '0 10px',
         marginLeft: 16,
       }}
-      onClick={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       <svg
         viewBox="0 0 24 24"
@@ -238,16 +232,12 @@ const SearchBox: React.FC = () => {
               marginBottom: 4,
             }}
           >
-            找到
-            {' '}
-            {results.length}
-            {' '}
-            个节点
+            找到 {results.length} 个节点
           </div>
           {results.map((item, index) => {
             const { node, path } = item
             const pathStr = showFullPath
-              ? path.slice(0, -1).map(p => p.text).join(' › ')
+              ? path.slice(0, -1).map((p) => p.text).join(' › ')
               : ''
             return (
               <div

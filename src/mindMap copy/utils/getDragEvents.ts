@@ -1,14 +1,14 @@
-import type { MindMapNode, Theme } from '../types'
-import { DROP_AREA, LEFT_NODE } from '../types'
-import { findNode } from './assistFunctions'
+﻿import { findNode } from './assistFunctions'
 import { drawDragCanvas } from './drawCanvas'
+import { Theme, MindMapNode } from '../types'
+import { LEFT_NODE, RIGHT_NODE, DROP_AREA, ROOT_NODE_ID } from '../types'
 
-type DragHandlers = {
+interface DragHandlers {
   type: string
   listener: EventListenerOrEventListenerObject
 }
 
-type MoveXY = {
+interface MoveXY {
   x: number
   y: number
 }
@@ -30,8 +30,7 @@ export default function getDragEvents(
   zoom: number,
   drag: MoveXY,
 ): DragHandlers[] {
-  if (!dragCanvas || !container)
-    return []
+  if (!dragCanvas || !container) return []
 
   let nodeId = ''
   let parentId = ''
@@ -86,12 +85,11 @@ export default function getDragEvents(
           if (parent) {
             parentIsRoot = parent === mindmap
             const parentDom = document.getElementById(parentId)
-            if (parentDom)
-              parentOffset = getDomOffset(parentDom)
+            if (parentDom) parentOffset = getDomOffset(parentDom)
 
-            children[0] = parent.children.map(child => child.id)
+            children[0] = parent.children.map((child) => child.id)
             let childrenOffset: ReturnType<typeof getDomOffset>[][] = []
-            childrenOffset[0] = children[0].map(nodeId => getDomOffset(document.getElementById(nodeId) as HTMLElement))
+            childrenOffset[0] = children[0].map((nodeId) => getDomOffset(document.getElementById(nodeId) as HTMLElement))
 
             if (parentIsRoot && mindmap.children.length > 3) {
               const half = Math.trunc(mindmap.children.length / 2)
@@ -99,10 +97,10 @@ export default function getDragEvents(
               childrenOffset = [childrenOffset[0].slice(0, half), childrenOffset[0].slice(half)]
             }
 
-            childrenOffsetLeft = childrenOffset.map(each => Math.min(...each.map(offset => offset.left)))
-            childrenOffsetRight = childrenOffset.map(each => Math.max(...each.map(offset => offset.right)))
-            childrenOffsetVertical = childrenOffset.map(each =>
-              each.map(offset => [offset.top, offset.bottom]).reduce((flatArr, cur) => flatArr.concat(cur), [] as number[]),
+            childrenOffsetLeft = childrenOffset.map((each) => Math.min(...each.map((offset) => offset.left)))
+            childrenOffsetRight = childrenOffset.map((each) => Math.max(...each.map((offset) => offset.right)))
+            childrenOffsetVertical = childrenOffset.map((each) =>
+              each.map((offset) => [offset.top, offset.bottom]).reduce((flatArr, cur) => flatArr.concat(cur), [] as number[]),
             )
           }
         }
@@ -112,8 +110,7 @@ export default function getDragEvents(
       type: 'drag',
       listener: ((event: DragEvent) => {
         const ctx = dragCanvas!.getContext('2d')
-        if (!ctx)
-          return
+        if (!ctx) return
         ctx.clearRect(0, 0, dragCanvas!.width, dragCanvas!.height)
 
         const total = children.length
@@ -125,10 +122,10 @@ export default function getDragEvents(
         for (let i = 0; i < total; i++) {
           if (!inDropArea && mouseX > childrenOffsetLeft[i] && mouseX < childrenOffsetRight[i]) {
             const childOffset = { left: childrenOffsetLeft[i], right: childrenOffsetRight[i], top: 0, bottom: 0 }
-            const childLeftOfParent
-              = i === 1
-                || (!parentIsRoot
-                  && (document.getElementById(nodeId) as HTMLElement | null)?.dataset.tag === LEFT_NODE)
+            const childLeftOfParent =
+              i === 1 ||
+              (!parentIsRoot &&
+                (document.getElementById(nodeId) as HTMLElement | null)?.dataset.tag === LEFT_NODE)
 
             const lastIndex = childrenOffsetVertical[i].length - 1
 
@@ -208,8 +205,7 @@ export default function getDragEvents(
       type: 'dragend',
       listener: () => {
         const ctx = dragCanvas!.getContext('2d')
-        if (ctx)
-          ctx.clearRect(0, 0, dragCanvas!.width, dragCanvas!.height)
+        if (ctx) ctx.clearRect(0, 0, dragCanvas!.width, dragCanvas!.height)
         container!.removeEventListener('scroll', handleContainerScroll)
       },
     },

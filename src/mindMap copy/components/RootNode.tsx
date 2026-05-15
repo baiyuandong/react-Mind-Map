@@ -1,11 +1,10 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import { ROOT_PARENT } from '../types'
+﻿import React, { useEffect, useRef } from 'react'
 import MindMapNodeRenderer from './Node'
 import SubNode from './SubNode'
+import { ROOT_PARENT } from '../types'
+import type { MindMapNode } from '../types'
 
-type RootNodeProps = {
+interface RootNodeProps {
   node: MindMapNode
   nodeRefs: Set<React.RefObject<HTMLDivElement | null>>
 }
@@ -28,7 +27,7 @@ const RootNode: React.FC<RootNodeProps> = ({ node, nodeRefs }) => {
     <div style={{ display: 'flex', alignItems: 'center', width: 'max-content' }}>
       {/* 左侧分支 */}
       <div>
-        {leftChildren.map(subNode => (
+        {leftChildren.map((subNode) => (
           <SubNode
             key={subNode.id}
             layer={1}
@@ -52,7 +51,7 @@ const RootNode: React.FC<RootNodeProps> = ({ node, nodeRefs }) => {
 
       {/* 右侧分支 */}
       <div>
-        {rightChildren.map(subNode => (
+        {rightChildren.map((subNode) => (
           <SubNode
             key={subNode.id}
             layer={1}

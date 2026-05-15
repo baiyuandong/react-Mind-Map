@@ -1,14 +1,14 @@
-const mousemoveInfo = {
+﻿const mousemoveInfo = {
   startX: 0,
   startY: 0,
   isDragging: false,
 }
 
-type MoveHook = {
+interface MoveHook {
   moveXY: (x: number, y: number) => void
 }
 
-type ZoomHook = {
+interface ZoomHook {
   zoomIn: () => void
   zoomOut: () => void
 }
@@ -16,16 +16,15 @@ type ZoomHook = {
 // 判断是否点击到了思维导图节点或其子元素
 function isNodeElement(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null
-  if (!el)
-    return false
+  if (!el) return false
   return !!(
-    el.closest('[data-tag="nodeLeft"]')
-    || el.closest('[data-tag="nodeRight"]')
-    || el.closest('[data-tag="dropArea"]')
-    || el.closest('#rmind_root_node')
-    || el.closest('p')
-    || el.closest('button')
-    || el.closest('canvas')
+    el.closest('[data-tag="nodeLeft"]') ||
+    el.closest('[data-tag="nodeRight"]') ||
+    el.closest('[data-tag="dropArea"]') ||
+    el.closest('#rmind_root_node') ||
+    el.closest('p') ||
+    el.closest('button') ||
+    el.closest('canvas')
   )
 }
 
@@ -38,8 +37,7 @@ export function createWheelZoomHandler(zoomHook: ZoomHook) {
       e.stopPropagation()
       if (e.deltaY < 0) {
         zoomIn()
-      }
-      else {
+      } else {
         zoomOut()
       }
     }
@@ -58,8 +56,7 @@ export function createMouseDragHandler(moveHook: MoveHook) {
       }
     },
     handleMouseMove: (e: MouseEvent) => {
-      if (mousemoveInfo.startX === 0 && mousemoveInfo.startY === 0)
-        return
+      if (mousemoveInfo.startX === 0 && mousemoveInfo.startY === 0) return
 
       const movedX = e.clientX - mousemoveInfo.startX
       const movedY = e.clientY - mousemoveInfo.startY
@@ -67,8 +64,7 @@ export function createMouseDragHandler(moveHook: MoveHook) {
       if (!mousemoveInfo.isDragging) {
         if (Math.abs(movedX) > 5 || Math.abs(movedY) > 5) {
           mousemoveInfo.isDragging = true
-        }
-        else {
+        } else {
           return
         }
       }

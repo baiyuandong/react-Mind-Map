@@ -1,14 +1,13 @@
-import * as React from 'react'
-import { useEffect, useState } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import useMindMapStore from '../store'
 
-type MdEditorProps = {
+interface MdEditorProps {
   className?: string
 }
 
 const MdEditor: React.FC<MdEditorProps> = ({ className }) => {
-  const curNodeInfo = useMindMapStore(s => s.curNodeInfo)
-  const editNodeInfo = useMindMapStore(s => s.editNodeInfo)
+  const curNodeInfo = useMindMapStore((s) => s.curNodeInfo)
+  const editNodeInfo = useMindMapStore((s) => s.editNodeInfo)
   const [text, setText] = useState('')
 
   useEffect(() => {

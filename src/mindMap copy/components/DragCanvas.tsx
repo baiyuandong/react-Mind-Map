@@ -1,11 +1,10 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import useMindMapStore from '../store'
-import { ROOT_NODE_ID } from '../types'
-import getDragEvents from '../utils/getDragEvents'
+﻿import React, { useEffect, useRef } from "react"
+import getDragEvents from "../utils/getDragEvents"
+import useMindMapStore from "../store"
+import { ROOT_NODE_ID } from "../types"
+import type { MindMapNode } from "../types"
 
-type DragCanvasProps = {
+interface DragCanvasProps {
   parentRef: React.RefObject<HTMLDivElement | null>
   containerRef: React.RefObject<HTMLDivElement | null>
   mindmap: MindMapNode
@@ -13,12 +12,12 @@ type DragCanvasProps = {
 
 const DragCanvas: React.FC<DragCanvasProps> = ({ parentRef, containerRef, mindmap }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const getTheme = useMindMapStore(s => s.getTheme)
-  const moveNode = useMindMapStore(s => s.moveNode)
-  const zoom = useMindMapStore(s => s.zoom)
-  const x = useMindMapStore(s => s.x)
-  const y = useMindMapStore(s => s.y)
-  const flag = useMindMapStore(s => s.curSelect)
+  const getTheme = useMindMapStore((s) => s.getTheme)
+  const moveNode = useMindMapStore((s) => s.moveNode)
+  const zoom = useMindMapStore((s) => s.zoom)
+  const x = useMindMapStore((s) => s.x)
+  const y = useMindMapStore((s) => s.y)
+  const flag = useMindMapStore((s) => s.curSelect)
 
   const mindmapHook = { moveNode }
   const theme = getTheme()
@@ -33,21 +32,20 @@ const DragCanvas: React.FC<DragCanvasProps> = ({ parentRef, containerRef, mindma
       }
     }
 
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
   }, [])
 
   useEffect(() => {
     const dom = canvasRef.current
     const parent = parentRef.current
     const container = containerRef.current
-    if (!dom || !parent || !container)
-      return
+    if (!dom || !parent || !container) return
 
     dom.width = parent.offsetWidth
     dom.height = parent.offsetHeight
 
-    const sel = '[data-mindmap-wrapper]'
+    const sel = "[data-mindmap-wrapper]"
     const wrapper = document.getElementById(ROOT_NODE_ID)?.closest(sel) || document.querySelector(sel)
 
     const handleDrag = getDragEvents(mindmap, dom, container, theme, mindmapHook, zoom, { x, y })
@@ -67,11 +65,11 @@ const DragCanvas: React.FC<DragCanvasProps> = ({ parentRef, containerRef, mindma
     <canvas
       ref={canvasRef}
       style={{
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
         zIndex: -1,
-        pointerEvents: 'none',
+        pointerEvents: "none",
       }}
     />
   )

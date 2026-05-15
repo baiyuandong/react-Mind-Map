@@ -1,16 +1,15 @@
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
+﻿import React, { useEffect, useRef } from 'react'
 import useMindMapStore from '../store'
 
-type InputDivProps = {
+interface InputDivProps {
   nodeId: string
   children: React.ReactNode
 }
 
 const InputDiv: React.FC<InputDivProps> = ({ nodeId, children }) => {
   const selfRef = useRef<HTMLDivElement>(null)
-  const changeText = useMindMapStore(s => s.changeText)
-  const selectNode = useMindMapStore(s => s.selectNode)
+  const changeText = useMindMapStore((s) => s.changeText)
+  const selectNode = useMindMapStore((s) => s.selectNode)
 
   const handleKeydown = (event: React.KeyboardEvent) => {
     switch (event.key.toUpperCase()) {
@@ -49,7 +48,7 @@ const InputDiv: React.FC<InputDivProps> = ({ nodeId, children }) => {
       ref={selfRef}
       contentEditable
       suppressContentEditableWarning
-      onClick={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
       onKeyDown={handleKeydown}
       onBlur={handleBlur}
       style={{

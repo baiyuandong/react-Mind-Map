@@ -1,7 +1,7 @@
-import type { MindMapNode, Theme } from '../types'
-import { LEFT_NODE } from '../types'
+﻿import { Theme, MindMapNode } from '../types'
+import { LEFT_NODE, RIGHT_NODE } from '../types'
 
-type Rect = {
+interface Rect {
   left: number
   right: number
   top: number
@@ -23,8 +23,7 @@ function drawLine(ctx: CanvasRenderingContext2D, node: MindMapNode, map: Map<str
   const { id: parentId, children } = node
   if (children && children.length > 0) {
     const parentData = map.get(parentId)
-    if (!parentData)
-      return
+    if (!parentData) return
     const [parentXLeft, parentXRight, parentY] = parentData
 
     children.forEach((child) => {
@@ -33,8 +32,7 @@ function drawLine(ctx: CanvasRenderingContext2D, node: MindMapNode, map: Map<str
         const [childXLeft, childXRight, childY, childTag] = childData
         if (childTag === LEFT_NODE) {
           drawBezier(ctx, parentXLeft, parentY, childXRight, childY)
-        }
-        else {
+        } else {
           drawBezier(ctx, parentXRight, parentY, childXLeft, childY)
         }
         drawLine(ctx, child, map)
@@ -86,8 +84,7 @@ export function drawDragCanvas(
     parentX = parentOffset.left
     childX = childOffset.right
     ctx.strokeRect(childX - virtualRectWidth, childY - virtualRectHeight / 2, virtualRectWidth, virtualRectHeight)
-  }
-  else {
+  } else {
     parentX = parentOffset.right
     childX = childOffset.left
     ctx.strokeRect(childX, childY - virtualRectHeight / 2, virtualRectWidth, virtualRectHeight)

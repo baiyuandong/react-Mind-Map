@@ -1,20 +1,18 @@
-import * as React from 'react'
-import { useContext, useEffect } from 'react'
+﻿import React, { useContext, useEffect } from 'react'
 import useMindMapStore from '../store'
 import MdEditor from './MdEditor'
 
 const EditPanel: React.FC = () => {
-  const editPanelShow = useMindMapStore(s => s.editPanelShow)
-  const curNodeInfo = useMindMapStore(s => s.curNodeInfo)
-  const toggleEditPanel = useMindMapStore(s => s.toggleEditPanel)
+  const editPanelShow = useMindMapStore((s) => s.editPanelShow)
+  const curNodeInfo = useMindMapStore((s) => s.curNodeInfo)
+  const toggleEditPanel = useMindMapStore((s) => s.toggleEditPanel)
 
-  if (!editPanelShow)
-    return null
+  if (!editPanelShow) return null
 
   return (
     <div
-      onClick={e => e.stopPropagation()}
-      onKeyDown={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
       style={{
         height: 500,
         width: 300,
@@ -31,8 +29,7 @@ const EditPanel: React.FC = () => {
       }}
     >
       <div style={{ marginBottom: 8 }}>
-        当前编辑节点：
-        {curNodeInfo.text || '无'}
+        当前编辑节点：{curNodeInfo.text || '无'}
       </div>
       <button
         onClick={() => toggleEditPanel(false)}

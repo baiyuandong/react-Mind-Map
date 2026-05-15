@@ -1,9 +1,9 @@
-import type { MindMapNode } from '../types'
-import * as React from 'react'
-import useMindMapStore from '../store'
+﻿import React from 'react'
 import { drawLineCanvas } from '../utils/drawCanvas'
+import useMindMapStore from '../store'
+import type { MindMapNode } from '../types'
 
-type LineCanvasProps = {
+interface LineCanvasProps {
   parentRef: React.RefObject<HTMLDivElement | null>
   mindmap: MindMapNode
   nodeRefs: Set<React.RefObject<HTMLDivElement | null>>
@@ -11,27 +11,26 @@ type LineCanvasProps = {
 
 const LineCanvas: React.FC<LineCanvasProps> = ({ parentRef, mindmap, nodeRefs }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
-  const getTheme = useMindMapStore(s => s.getTheme)
-  const curSelect = useMindMapStore(s => s.curSelect)
-  const curEdit = useMindMapStore(s => s.curEdit)
+  const getTheme = useMindMapStore((s) => s.getTheme)
+  const zoom = useMindMapStore((s) => s.zoom)
+  const curSelect = useMindMapStore((s) => s.curSelect)
+  const curEdit = useMindMapStore((s) => s.curEdit)
 
   const redraw = React.useCallback(() => {
     const dom = canvasRef.current
     const parent = parentRef.current
-    if (!dom || !parent)
-      return
+    if (!dom || !parent) return
 
     // 设置 canvas 位图尺寸和 CSS 渲染尺寸一致
     const w = parent.offsetWidth
     const h = parent.offsetHeight
     dom.width = w
     dom.height = h
-    dom.style.width = `${w}px`
-    dom.style.height = `${h}px`
+    dom.style.width = w + 'px'
+    dom.style.height = h + 'px'
 
     const ctx = dom.getContext('2d')
-    if (!ctx)
-      return
+    if (!ctx) return
 
     // 直接从 DOM 查找所有节点
     const nodeElements = parent.querySelectorAll<HTMLElement>('[data-tag]')
@@ -63,7 +62,7 @@ const LineCanvas: React.FC<LineCanvasProps> = ({ parentRef, mindmap, nodeRefs })
 
   React.useEffect(() => {
     redraw()
-  }, [redraw, mindmap, curSelect, curEdit])
+  }, [redraw, mindmap, zoom, curSelect, curEdit])
 
   React.useEffect(() => {
     const t1 = setTimeout(() => redraw(), 50)

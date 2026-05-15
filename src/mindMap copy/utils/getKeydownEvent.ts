@@ -1,6 +1,6 @@
-import type { NodeStatus } from '../types'
+﻿import { NodeStatus } from '../types'
 
-type MindmapHook = {
+interface MindmapHook {
   addChild: (nodeId: string) => void
   addSibling: (nodeId: string, parentId: string) => void
   editNode: (nodeId: string) => void
@@ -9,7 +9,7 @@ type MindmapHook = {
   selectNode: (nodeId: string, selectByClick?: boolean) => void
 }
 
-type HistoryHook = {
+interface HistoryHook {
   undoHistory: () => void
   redoHistory: () => void
 }
@@ -51,12 +51,10 @@ export default function getKeydownEvent(
           if (info.children.length > 3) {
             selectNode(info.children[Math.trunc(info.children.length / 2)].id)
           }
-        }
-        else {
+        } else {
           if (!info.on_left) {
             selectNode(info.parent?.id || '')
-          }
-          else if (info.children.length > 0) {
+          } else if (info.children.length > 0) {
             selectNode(info.children[0].id)
           }
         }
@@ -65,14 +63,13 @@ export default function getKeydownEvent(
         event.preventDefault()
         if (info.on_left) {
           selectNode(info.parent?.id || '')
-        }
-        else if (info.children.length > 0) {
+        } else if (info.children.length > 0) {
           selectNode(info.children[0].id)
         }
         break
       case 'ARROWUP': {
         event.preventDefault()
-        const curIndex = info.parent?.children?.findIndex(child => child.id === nodeStatus.cur_select) ?? -1
+        const curIndex = info.parent?.children?.findIndex((child) => child.id === nodeStatus.cur_select) ?? -1
         if (curIndex > 0) {
           selectNode(info.parent.children[curIndex - 1].id)
         }
@@ -80,7 +77,7 @@ export default function getKeydownEvent(
       }
       case 'ARROWDOWN': {
         event.preventDefault()
-        const curIndex = info.parent?.children?.findIndex(child => child.id === nodeStatus.cur_select) ?? -1
+        const curIndex = info.parent?.children?.findIndex((child) => child.id === nodeStatus.cur_select) ?? -1
         const lastIndex = (info.parent?.children?.length ?? 0) - 1
         if (curIndex < lastIndex) {
           selectNode(info.parent.children[curIndex + 1].id)
@@ -99,8 +96,7 @@ export default function getKeydownEvent(
       if (combineKeyPressed && event.key.toUpperCase() === 'Z') {
         if (event.shiftKey) {
           historyHook.redoHistory()
-        }
-        else {
+        } else {
           historyHook.undoHistory()
         }
       }
@@ -108,9 +104,8 @@ export default function getKeydownEvent(
     if (nodeStatus.cur_select !== '') {
       try {
         handleKeyEventWithNode(event)
-      }
-      catch {
-        // ignore
+      } catch {
+        alert('当前的节点信息存在问题，请重新选择节点')
       }
     }
   }

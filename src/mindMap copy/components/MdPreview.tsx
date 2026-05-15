@@ -1,8 +1,7 @@
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
+﻿import React, { useEffect, useRef } from 'react'
 import useMindMapStore from '../store'
 
-type MdPreviewProps = {
+interface MdPreviewProps {
   mdtext?: string
 }
 
