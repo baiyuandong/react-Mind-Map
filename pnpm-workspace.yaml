@@ -1,3 +1,4 @@
 allowBuilds:
-  core-js: set this to true or false
-  highlight.js: set this to true or false
+  core-js: false
+  highlight.js: false
+ignoreScripts: false
