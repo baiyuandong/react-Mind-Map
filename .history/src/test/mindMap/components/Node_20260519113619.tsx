@@ -69,7 +69,11 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
     clearNodeStatus()
   }
 
-  const handleOpenKnowledgePoint = (e: React.MouseEvent) => {
+
+
+
+
+    const handleOpenKnowledgePoint = (e: React.MouseEvent) => {
     e.stopPropagation()
     selectNode(node.id, true)
     toggleKnowledgeDrawer(true, node.id)

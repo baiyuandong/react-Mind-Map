@@ -156,7 +156,7 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
       />
 
       {/* 知识点数量徽章 */}
-      {node.knowledgePoints && node.knowledgePoints.length > 0 && (
+      {node.points && node.points.length > 0 && (
         <div
           onClick={handleOpenKnowledgePoint}
           style={{
@@ -178,7 +178,7 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
             zIndex: 10,
           }}
         >
-          {node.knowledgePoints.length}
+          {node.points.length}
         </div>
       )}
 

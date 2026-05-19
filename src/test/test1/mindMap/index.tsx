@@ -1,6 +1,6 @@
-﻿'use client'
-import React from 'react'
-import useMindMapStore from './store';
+'use client'
+import React, { useCallback, useMemo } from 'react'
+import useMindMapStore from './store'
 import type { NodeInfo, MindMapNode } from './types'
 import { createWheelZoomHandler, createMouseDragHandler } from './utils/getMouseWheelEvent'
 import getKeydownEvent from './utils/getKeydownEvent'
@@ -10,20 +10,22 @@ import DragCanvas from './components/DragCanvas'
 import LineCanvas from './components/LineCanvas'
 import EditPanel from './components/EditPanel'
 import SearchBox from './components/SearchBox'
-import KnowledgePointModal from './components/KnowledgePointModal'
 import KnowledgePointDrawer from './components/KnowledgePointDrawer'
+import KnowledgePointModal from './components/KnowledgePointModal'
+import { InfiniteScrollSelect } from './components/InfiniteScrollSelect'
 import { useAppContext } from '@/context/app-context'
 import { useSearchParams } from '@/next/navigation'
-import { useKnowledgeTree, syncIncrementalNodes } from '@/service/knowledgeSystem/use-knowledge'
+import {
+    useKnowledgeTree,
+    syncIncrementalNodes,
+    useSystemListPaginated,
+} from '@/service/knowledgeSystem/use-knowledge'
+import { useKnowledgePointDrawer } from './hooks/useKnowledgePointDrawer'
 import defaultMindmap from './utils/defaultMindmap'
-import PreviewMiniMap from './components/PreviewMiniMap'
 import { toast } from '@/app/components/base/ui/toast'
-import { useMemo } from 'react'
 import { RiArrowLeftLine } from '@remixicon/react'
 import Link from '@/next/link'
-
-
-
+import type { SystemItem } from '@/models/knowledgeSystem'
 
 interface MindMapViewerProps {
     data?: Record<string, unknown>
@@ -45,13 +47,11 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
     const nodeRefs = React.useRef(new Set<React.RefObject<HTMLDivElement | null>>())
     const [flag, setFlag] = React.useState(0)
 
-    // 新增：从 app context 和 url 获取 tenantId/systemId 并请求知识树
     const { currentWorkspace } = useAppContext()
     const searchParams = useSearchParams()
     const systemId = searchParams ? searchParams.get('systemId') || '' : ''
     const tenantId = currentWorkspace?.id || ''
 
-    // 所有 selector 只返回原始值或 stable 引用
     const mindmap = useMindMapStore((s) => s.mindmap)
     const curSelect = useMindMapStore((s) => s.curSelect)
     const curEdit = useMindMapStore((s) => s.curEdit)
@@ -79,18 +79,19 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
     const knowledgeDrawerShow = useMindMapStore((s) => s.knowledgeDrawerShow)
     const knowledgeDrawerNodeId = useMindMapStore((s) => s.knowledgeDrawerNodeId)
     const toggleKnowledgeDrawer = useMindMapStore((s) => s.toggleKnowledgeDrawer)
-    const addKnowledgePoint = useMindMapStore((s) => s.addKnowledgePoint)
-    const updateKnowledgePoint = useMindMapStore((s) => s.updateKnowledgePoint)
-    const deleteKnowledgePoint = useMindMapStore((s) => s.deleteKnowledgePoint)
     const loadMindmap = useMindMapStore((s) => s.loadMindmap)
     const getMindmap = useMindMapStore((s) => s.getMindmap)
     const undoHistory = useMindMapStore((s) => s.undoHistory)
     const redoHistory = useMindMapStore((s) => s.redoHistory)
     const expandAll = useMindMapStore((s) => s.expandAll)
-    const historyLength = useMindMapStore((s) => s.history.length)
-    const redoStackLength = useMindMapStore((s) => s.redoStack.length)
     const mindmapJson = useMindMapStore((s) => JSON.stringify(s.mindmap))
     const incrementalData = useMindMapStore((s) => s.incremental_data)
+
+    const {
+        handleAdd: handleKnowledgePointAdd,
+        handleDelete: handleKnowledgePointDelete,
+        handleEdit: handleKnowledgePointEdit,
+    } = useKnowledgePointDrawer(tenantId, systemId, knowledgeDrawerNodeId || '')
 
     React.useEffect(() => {
         if (initialData) {
@@ -101,14 +102,40 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                 // ignore
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // 新增：根据 useKnowledgeTree 的返回数据加载思维导图，若为空则使用默认数据
     const treeQuery = useKnowledgeTree({ tenantId, systemId, enabled: !!tenantId && !!systemId })
 
+    // ── Paginated system list for the selector ──────────────
+    const [systemPage, setSystemPage] = React.useState(1)
+    const [allSystems, setAllSystems] = React.useState<SystemItem[]>([])
+    const pageSize = 20
+    const systemListQuery = useSystemListPaginated(tenantId, { page: systemPage, page_size: pageSize })
+
     React.useEffect(() => {
-        // 仅在 tenantId/systemId 可用时处理
+        const resp = systemListQuery.data?.data
+        if (!resp) return
+        if (systemPage === 1)
+            setAllSystems(resp.items)
+        else
+            setAllSystems(prev => [...prev, ...resp.items])
+    }, [systemListQuery.data, systemPage])
+
+    const systemHasMore = systemListQuery.data?.data?.has_more ?? false
+
+    const handleSystemSelect = useCallback((id: string) => {
+        const params = new URLSearchParams(window.location.search)
+        params.set('systemId', id)
+        window.location.search = params.toString()
+    }, [])
+
+    const handleLoadMoreSystems = useCallback(() => {
+        if (!systemHasMore || systemListQuery.isFetching) return
+        setSystemPage(prev => prev + 1)
+    }, [systemHasMore, systemListQuery.isFetching])
+
+    // 树数据  ──────────────────────────────────────────
+    React.useEffect(() => {
         if (!tenantId || !systemId) return
 
         const resp = treeQuery.data
@@ -122,17 +149,19 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                     showChildren: true,
                     children: Array.isArray(n.children) && n.children.length ? buildNodes(n.children) : [],
                     parent_id: n.parent_id ?? '',
-                    knowledgePoints: [],
+                    points: Array.isArray(n.points) ? n.points.map((p: any) => ({
+                        id: p.binding_id,
+                        name: p.name,
+                        description: p.description,
+                    })) : [],
                     describe: n.describe,
                 }))
-
             const root = { ...defaultMindmap, children: buildNodes(nodes) }
             loadMindmap(root)
-        } else if (treeQuery.isFetched) {
-            // 接口返回为空或无数据时使用默认脑图   
+        }
+        else if (treeQuery.isFetched) {
             loadMindmap(defaultMindmap)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [treeQuery.data, treeQuery.isFetched, tenantId, systemId])
 
     React.useEffect(() => {
@@ -157,7 +186,6 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
 
         window.addEventListener('keydown', handleKeydown)
         return () => window.removeEventListener('keydown', handleKeydown)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [readonly, curSelect, curEdit, curNodeInfo])
 
     React.useEffect(() => {
@@ -196,7 +224,6 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
             container.removeEventListener('mouseup', dragHandler.handleMouseUp)
             container.removeEventListener('mouseleave', dragHandler.handleMouseUp)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [flag, zoomIn, zoomOut, moveXY])
 
     const handleZoomIn = () => zoomIn()
@@ -206,25 +233,22 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
     const handleUndo = () => undoHistory()
     const handleRedo = () => redoHistory()
     const handleExpand = () => expandAll('rmind_root_node')
-    // 保存
+
     const handleSave = async () => {
         const data = getMindmap()
-        console.log('save mindmap data:', data.children)
-        console.log('incremental_data:', incrementalData)
 
         if (!tenantId || !systemId) {
             console.warn('tenantId or systemId missing, skip sync')
             return
         }
 
-
         const paramsData = { full_data: data.children, incremental_data: incrementalData }
 
         try {
             await syncIncrementalNodes(tenantId, systemId, paramsData)
-            // 清空 incremental_data
             useMindMapStore.setState({ incremental_data: [] })
-        } catch (err) {
+        }
+        catch (err) {
             toast.error(err?.data || '保存失败!')
         }
     }
@@ -240,10 +264,7 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
         '--theme-assist: ' + theme.assist + ';',
     ].join(' ')
 
-    const fallbackRoute = useMemo(() => {
-        return `/knowledgeSystem `
-    }, [])
-
+    const fallbackRoute = useMemo(() => '/knowledgeSystem', [])
 
     return (
         <div
@@ -258,10 +279,6 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
             }}
         >
             <style>{':root {' + themeCss + '}'}</style>
-            {/*** Header bar — two rows:
-             * Row 1: Link(知识体系) ──────────── 保存
-             * Row 2: <select> 下拉框 ────────── SearchBox
-             **/}
             <div
                 style={{
                     position: 'absolute',
@@ -271,7 +288,7 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                     height: 100,
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '8px 16px',
+                    padding: '0 16px',
                     backgroundColor: '#ffffff',
                     borderBottom: '1px solid #eee',
                     zIndex: 10,
@@ -293,26 +310,21 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <select
-                        aria-label="知识体系选择"
-                        style={{
-                            height: 28,
-                            borderRadius: 6,
-                            border: '1px solid #eee',
-                            padding: '0 8px',
-                            background: '#fff',
-                            fontSize: 13,
-                        }}
-                    >
-                        <option value="">智能制造专业知识体系</option>
-                    </select>
+                    <InfiniteScrollSelect
+                        systems={allSystems}
+                        selectedId={systemId}
+                        onSelect={handleSystemSelect}
+                        hasMore={systemHasMore}
+                        isLoading={systemListQuery.isFetching}
+                        onLoadMore={handleLoadMoreSystems}
+                        placeholder="请选择知识体系"
+                    />
 
                     <div className='flex items-center gap-2' style={{ minWidth: 240, justifyContent: 'flex-end' }}>
                         <SearchBox />
                     </div>
                 </div>
             </div>
-
 
             <div
                 ref={containerRef}
@@ -357,11 +369,7 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                     />
                 </div>
 
-                {/* 浮动缩放控件，位于画布右下角 - 上下排列：缩略图在上，缩放按钮在下 */}
-                <div style={{ position: 'absolute', bottom: 16, right: 16, zIndex: 20, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                    {/* 缩略图预览 */}
-                    <PreviewMiniMap mindmap={mindmap} x={x} y={y} zoom={zoom} moveXY={moveXY} containerRef={containerRef} />
-
+                <div style={{ position: 'absolute', bottom: 0, right: 16, zIndex: 20, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'rgba(255,255,255,0.95)', padding: '8px 12px', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
                         <ToolButton onClick={handleZoomOut} title="缩小">-</ToolButton>
                         <span style={{ fontSize: 12, color: '#888', minWidth: 60, textAlign: 'center' }}>
@@ -372,28 +380,16 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                 </div>
 
                 <EditPanel />
-                <KnowledgePointModal />
                 <KnowledgePointDrawer
                     open={knowledgeDrawerShow}
                     onClose={() => toggleKnowledgeDrawer(false)}
                     nodeName={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.name || '') : ''}
-                    knowledgePoints={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.knowledgePoints || []) : []}
-                    onAdd={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            addKnowledgePoint(knowledgeDrawerNodeId, { id: crypto.randomUUID(), ...point })
-                        }
-                    }}
-                    onDelete={(id) => {
-                        if (knowledgeDrawerNodeId) {
-                            deleteKnowledgePoint(knowledgeDrawerNodeId, id)
-                        }
-                    }}
-                    onEdit={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            updateKnowledgePoint(knowledgeDrawerNodeId, point.id, { title: point.title, content: point.content })
-                        }
-                    }}
+                    points={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.points || []) : []}
+                    onAdd={handleKnowledgePointAdd}
+                    onDelete={handleKnowledgePointDelete}
+                    onEdit={handleKnowledgePointEdit}
                 />
+                <KnowledgePointModal />
             </div>
         </div>
     )
@@ -429,8 +425,3 @@ const ToolButton: React.FC<ToolButtonProps> = ({ onClick, title, disabled, child
 }
 
 export default MindMapViewer
-
-
-
-
-

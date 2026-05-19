@@ -372,25 +372,24 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                 </div>
 
                 <EditPanel />
-                <KnowledgePointModal />
                 <KnowledgePointDrawer
-                    open={knowledgeDrawerShow}
-                    onClose={() => toggleKnowledgeDrawer(false)}
-                    nodeName={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.name || '') : ''}
-                    knowledgePoints={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.knowledgePoints || []) : []}
+                    open={knowledgePointModalShow}
+                    onClose={() => toggleKnowledgePointModal(false)}
+                    nodeName={knowledgePointNodeId ? (findNode(mindmap, knowledgePointNodeId)?.name || '') : ''}
+                    knowledgePoints={knowledgePointNodeId ? (findNode(mindmap, knowledgePointNodeId)?.knowledgePoints || []) : []}
                     onAdd={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            addKnowledgePoint(knowledgeDrawerNodeId, { id: crypto.randomUUID(), ...point })
+                        if (knowledgePointNodeId) {
+                            addKnowledgePoint(knowledgePointNodeId, { id: crypto.randomUUID(), ...point })
                         }
                     }}
                     onDelete={(id) => {
-                        if (knowledgeDrawerNodeId) {
-                            deleteKnowledgePoint(knowledgeDrawerNodeId, id)
+                        if (knowledgePointNodeId) {
+                            deleteKnowledgePoint(knowledgePointNodeId, id)
                         }
                     }}
                     onEdit={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            updateKnowledgePoint(knowledgeDrawerNodeId, point.id, { title: point.title, content: point.content })
+                        if (knowledgePointNodeId) {
+                            updateKnowledgePoint(knowledgePointNodeId, point.id, { title: point.title, content: point.content })
                         }
                     }}
                 />

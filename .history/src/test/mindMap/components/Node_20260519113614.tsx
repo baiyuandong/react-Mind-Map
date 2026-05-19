@@ -72,7 +72,7 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
   const handleOpenKnowledgePoint = (e: React.MouseEvent) => {
     e.stopPropagation()
     selectNode(node.id, true)
-    toggleKnowledgeDrawer(true, node.id)
+    toggleKnowledgePointModal(true, node.id)
   }
 
   const handleContextMenu = useCallback(

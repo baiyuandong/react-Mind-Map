@@ -53,7 +53,6 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
   const toggleChildren = useMindMapStore((s) => s.toggleChildren)
   const clearNodeStatus = useMindMapStore((s) => s.clearNodeStatus)
   const toggleKnowledgePointModal = useMindMapStore(s => s.toggleKnowledgePointModal)
-  const toggleKnowledgeDrawer = useMindMapStore(s => s.toggleKnowledgeDrawer)
 
 
   const handleSelectNode = () => {
@@ -72,7 +71,7 @@ const Node: React.FC<NodeProps> = ({ layer, node, nodeRefs, parent, onLeft = fal
   const handleOpenKnowledgePoint = (e: React.MouseEvent) => {
     e.stopPropagation()
     selectNode(node.id, true)
-    toggleKnowledgeDrawer(true, node.id)
+    toggleKnowledgePointModal(true, node.id)
   }
 
   const handleContextMenu = useCallback(

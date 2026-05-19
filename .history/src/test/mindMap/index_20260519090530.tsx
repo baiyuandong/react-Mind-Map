@@ -10,7 +10,6 @@ import DragCanvas from './components/DragCanvas'
 import LineCanvas from './components/LineCanvas'
 import EditPanel from './components/EditPanel'
 import SearchBox from './components/SearchBox'
-import KnowledgePointModal from './components/KnowledgePointModal'
 import KnowledgePointDrawer from './components/KnowledgePointDrawer'
 import { useAppContext } from '@/context/app-context'
 import { useSearchParams } from '@/next/navigation'
@@ -76,9 +75,6 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
     const knowledgePointModalShow = useMindMapStore((s) => s.knowledgePointModalShow)
     const knowledgePointNodeId = useMindMapStore((s) => s.knowledgePointNodeId)
     const toggleKnowledgePointModal = useMindMapStore((s) => s.toggleKnowledgePointModal)
-    const knowledgeDrawerShow = useMindMapStore((s) => s.knowledgeDrawerShow)
-    const knowledgeDrawerNodeId = useMindMapStore((s) => s.knowledgeDrawerNodeId)
-    const toggleKnowledgeDrawer = useMindMapStore((s) => s.toggleKnowledgeDrawer)
     const addKnowledgePoint = useMindMapStore((s) => s.addKnowledgePoint)
     const updateKnowledgePoint = useMindMapStore((s) => s.updateKnowledgePoint)
     const deleteKnowledgePoint = useMindMapStore((s) => s.deleteKnowledgePoint)
@@ -372,27 +368,26 @@ const MindMapViewer: React.FC<MindMapViewerProps> = ({
                 </div>
 
                 <EditPanel />
-                <KnowledgePointModal />
                 <KnowledgePointDrawer
-                    open={knowledgeDrawerShow}
-                    onClose={() => toggleKnowledgeDrawer(false)}
-                    nodeName={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.name || '') : ''}
-                    knowledgePoints={knowledgeDrawerNodeId ? (findNode(mindmap, knowledgeDrawerNodeId)?.knowledgePoints || []) : []}
-                    onAdd={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            addKnowledgePoint(knowledgeDrawerNodeId, { id: crypto.randomUUID(), ...point })
-                        }
-                    }}
-                    onDelete={(id) => {
-                        if (knowledgeDrawerNodeId) {
-                            deleteKnowledgePoint(knowledgeDrawerNodeId, id)
-                        }
-                    }}
-                    onEdit={(point) => {
-                        if (knowledgeDrawerNodeId) {
-                            updateKnowledgePoint(knowledgeDrawerNodeId, point.id, { title: point.title, content: point.content })
-                        }
-                    }}
+                  open={knowledgePointModalShow}
+                  onClose={() => toggleKnowledgePointModal(false)}
+                  nodeName={knowledgePointNodeId ? (findNode(mindmap, knowledgePointNodeId)?.name || '') : ''}
+                  knowledgePoints={knowledgePointNodeId ? (findNode(mindmap, knowledgePointNodeId)?.knowledgePoints || []) : []}
+                  onAdd={(point) => {
+                    if (knowledgePointNodeId) {
+                      addKnowledgePoint(knowledgePointNodeId, { id: crypto.randomUUID(), ...point })
+                    }
+                  }}
+                  onDelete={(id) => {
+                    if (knowledgePointNodeId) {
+                      deleteKnowledgePoint(knowledgePointNodeId, id)
+                    }
+                  }}
+                  onEdit={(point) => {
+                    if (knowledgePointNodeId) {
+                      updateKnowledgePoint(knowledgePointNodeId, point.id, { title: point.title, content: point.content })
+                    }
+                  }}
                 />
             </div>
         </div>
